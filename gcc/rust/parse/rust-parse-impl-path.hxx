@@ -389,8 +389,13 @@ Parser<ManagedTokenSource>::parse_path_in_expression ()
   AST::PathExprSegment initial_segment = parse_path_expr_segment ();
   if (initial_segment.is_error ())
     {
-      // skip after somewhere?
-      // don't necessarily throw error but yeah
+      // Emit proper error message with the token that was found
+      const_TokenPtr t = lexer.peek_token ();
+      Error error (t->get_locus (),
+		   "expected identifier, found %qs",
+		   get_token_description (t->get_id ()));
+      add_error (std::move (error));
+
       return AST::PathInExpression::create_error ();
     }
   segments.push_back (std::move (initial_segment));
