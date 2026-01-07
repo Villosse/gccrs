@@ -7121,6 +7121,10 @@ Parser<ManagedTokenSource>::parse_stmt_or_expr ()
 	tl::expected<std::unique_ptr<AST::Expr>, Parse::Error::Expr>
 	  null_denotation;
 
+	if (path.is_error ())
+	  return tl::unexpected<Parse::Error::Node> (
+	    Parse::Error::Node::CHILD_ERROR);
+
 	if (lexer.peek_token ()->get_id () == EXCLAM)
 	  {
 	    std::unique_ptr<AST::MacroInvocation> invoc

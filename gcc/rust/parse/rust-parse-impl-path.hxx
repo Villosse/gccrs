@@ -389,12 +389,21 @@ Parser<ManagedTokenSource>::parse_path_in_expression ()
   AST::PathExprSegment initial_segment = parse_path_expr_segment ();
   if (initial_segment.is_error ())
     {
-      // Emit proper error message with the token that was found
-      const_TokenPtr t = lexer.peek_token ();
-      Error error (t->get_locus (),
-		   "expected identifier, found %qs",
-		   get_token_description (t->get_id ()));
-      add_error (std::move (error));
+      // Only emit error if we had an opening `::` - this indicates the user
+      // definitely intended to write a path. Otherwise, let the caller decide
+      // what error to emit based on context.
+      if (has_opening_scope_resolution)
+	{
+	  const_TokenPtr t = lexer.peek_token ();
+	  Error error (t->get_locus (),
+		       "expected identifier, found %qs",
+		       get_token_description (t->get_id ()));
+	  add_error (std::move (error));
+
+	  // Consume the bad token to prevent it from being parsed again
+	  // and causing cascading errors
+	  lexer.skip_token ();
+	}
 
       return AST::PathInExpression::create_error ();
     }

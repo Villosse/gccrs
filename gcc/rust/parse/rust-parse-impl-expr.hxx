@@ -1898,6 +1898,12 @@ Parser<ManagedTokenSource>::null_denotation (AST::AttrVec outer_attrs,
 	 * struct/enum, or just path info from it */
 	AST::PathInExpression path = parse_path_in_expression ();
 
+	// If path parsing failed, return error without continuing
+	// The error has already been emitted by parse_path_in_expression.
+	if (path.is_error ())
+	  return tl::unexpected<Parse::Error::Expr> (
+	    Parse::Error::Expr::CHILD_ERROR);
+
 	return null_denotation_path (std::move (path), std::move (outer_attrs),
 				     restrictions);
       }
